@@ -1,0 +1,53 @@
+import { web3ProviderUrl } from '@/utils/constants';
+import { MetaMaskInpageProvider } from '@metamask/providers';
+import Web3 from 'web3';
+
+declare global {
+  interface Window {
+    web3?: Web3;
+    ethereum?: MetaMaskInpageProvider;
+  }
+}
+
+const resolveWeb3 = (resolve: (value: Web3) => void) => {
+  let web3Instance: Web3;
+
+  if (
+    typeof window !== 'undefined' &&
+    typeof window.web3 !== 'undefined' &&
+    typeof window.ethereum !== 'undefined'
+  ) {
+    let { web3, ethereum } = window;
+    // We are in the browser and metamask is running.
+    console.log(`Injected web3 detected.`);
+    // web3 = new Web3(web3.currentProvider);
+    ethereum.request({ method: 'eth_requestAccounts' });
+    web3Instance = new Web3(ethereum);
+  } else {
+    // We are on the server *OR* the user is not running metamask
+    console.log(`No web3 instance injected, using web3 http provider .`);
+
+    const provider = new Web3.providers.HttpProvider(web3ProviderUrl);
+    web3Instance = new Web3(provider);
+  }
+
+  resolve(web3Instance);
+};
+
+const getWeb3 = async (): Promise<Web3> =>
+  new Promise((resolve) => {
+    if (typeof window !== 'undefined') {
+      // Wait for loading completion to avoid race conditions with web3 injection timing.
+      window.addEventListener(`load`, () => {
+        resolveWeb3(resolve);
+      });
+      // If document has loaded already, try to get Web3 immediately.
+      if (document.readyState === `complete`) {
+        resolveWeb3(resolve);
+      }
+    } else {
+      resolveWeb3(resolve);
+    }
+  });
+
+export { getWeb3, Web3 };

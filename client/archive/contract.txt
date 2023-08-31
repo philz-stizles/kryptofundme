@@ -1,0 +1,16 @@
+import { Campaign } from '@/models/Campaign';
+import getContract from './get-campaign-factory';
+
+export const getCampaigns = async () => {
+  let campaigns: Campaign[] = [];
+
+  try {
+    let contract = await getContract();
+
+    campaigns = await contract.methods.getDeployedCampaigns().call();
+  } catch (error: any) {
+    console.log(error.message);
+  }
+
+  return campaigns;
+};

@@ -1,0 +1,30 @@
+import CampaignFactoryJson from './../../web3/build/CampaignFactory.json';
+import { getWeb3, Web3 } from './get-web3';
+import { factoryAddress } from '@/utils/constants';
+
+const getContractInstance = async (
+  web3: Web3,
+  jsonInterface: any,
+  address: string
+) => {
+  // get network ID and the deployed address
+  //   const networkId = await web3.eth.net.getId();
+  //   const deployedAddress = contractDefinition.networks[networkId].address;
+
+  // create the instance
+  const instance = new web3.eth.Contract(jsonInterface, address);
+  return instance;
+};
+
+const getContract = async () => {
+  const web3 = await getWeb3();
+  let contract = await getContractInstance(
+    web3,
+    CampaignFactoryJson.abi,
+    factoryAddress
+  );
+
+  return contract;
+};
+
+export default getContract;
